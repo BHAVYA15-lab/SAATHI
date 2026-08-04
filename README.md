@@ -1,7 +1,7 @@
 # 🩺 Saathi — Healthcare Intelligence & SaaS Platform
 
-🔗 **Live Demo**: [https://saathi-health.vercel.app](https://saathi-health.vercel.app)  
-*Backend API: `https://saathi-backend.onrender.com/api` | API Docs: `https://saathi-backend.onrender.com/docs`*
+🔗 **Live Demo**: [https://saathi-taupe-iota.vercel.app](https://saathi-taupe-iota.vercel.app)  
+*Backend API: `https://saathi-ntbk.onrender.com/api` | API Docs: `https://saathi-ntbk.onrender.com/docs`*
 
 ---
 
