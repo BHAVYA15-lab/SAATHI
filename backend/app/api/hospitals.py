@@ -187,16 +187,27 @@ COST_MULT = {
 def get_operations_estimate(
     op_id: str = Query(..., description="Operation procedure ID (e.g. knee, cataract)"),
     insurer_id: str = Query("none", description="Insurer ID empanelment check"),
+    city: Optional[str] = Query(None, description="Optional city filter"),
     db: Session = Depends(get_db)
 ):
     op = db.query(Operation).filter(Operation.id == op_id).first()
     if not op:
         raise HTTPException(status_code=404, detail="Operation procedure not found")
         
-    branches = db.query(HospitalBranch).all()
+    query = db.query(HospitalBranch)
+    if city:
+        query = query.filter(HospitalBranch.city.ilike(city))
+    branches = query.all()
     
+    seen_names = set()
     results = []
     for h in branches:
+        # Deduplicate near-identical branch entries
+        unique_key = f"{h.branch_name}_{h.city}".lower()
+        if unique_key in seen_names:
+            continue
+        seen_names.add(unique_key)
+        
         cost_mult = COST_MULT.get(h.cost_band, 1.0)
         total = round((op.base_cost * cost_mult) / 500.0) * 500
         
@@ -216,6 +227,7 @@ def get_operations_estimate(
         results.append({
             "hospital_branch_id": h.id,
             "hospital_name": h.branch_name,
+            "city": h.city,
             "distance_km": h.distance_km,
             "rating": h.rating,
             "cost_breakup": {

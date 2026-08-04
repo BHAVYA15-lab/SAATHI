@@ -1406,7 +1406,7 @@ const OperationHospitalsScreen: React.FC<OperationHospitalsProps> = ({ opId, ins
                 <div className="flex justify-between items-start gap-4 flex-wrap">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-slate-800">{(est.hospital_name || "Hospital Branch").split(",")[0]}</span>
+                      <span className="font-bold text-sm text-slate-800">{est.hospital_name || "Hospital Branch"}</span>
                       <span className="st-mono text-[9px] text-grey bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded uppercase">✨ Matched</span>
                     </div>
                     <div className="flex items-center gap-3 text-[10px] text-grey font-bold mt-2">
@@ -1711,18 +1711,37 @@ const AiAssistantScreen: React.FC<AiAssistantProps> = () => {
 
       {/* Messages area */}
       <div className="flex-1 p-4 overflow-y-auto st-scroll flex flex-col gap-4 bg-slate-50/20">
-        {messages.map((m, idx) => (
-          <div key={idx} className={`flex flex-col max-w-[80%] ${m.sender === "user" ? "self-end items-end" : "self-start items-start"}`}>
-            <div className={`p-3.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${m.sender === "user" ? "bg-blue-600 text-white rounded-tr-sm" : "bg-white text-slate-700 border border-slate-200 rounded-tl-sm shadow-sm"}`}>
-              {m.text}
+        {messages.map((m, idx) => {
+          const renderFormattedText = (content: string) => {
+            if (!content) return null;
+            if (!content.includes("**")) return content;
+            const parts = content.split(/(\*\*.*?\*\*)/g);
+            return parts.map((part, i) => {
+              if (part.startsWith("**") && part.endsWith("**")) {
+                const innerText = part.slice(2, -2).replace(/\*\*/g, "").trim();
+                return (
+                  <strong key={i} className="font-extrabold text-slate-900">
+                    {innerText}
+                  </strong>
+                );
+              }
+              return part;
+            });
+          };
+
+          return (
+            <div key={idx} className={`flex flex-col max-w-[80%] ${m.sender === "user" ? "self-end items-end" : "self-start items-start"}`}>
+              <div className={`p-3.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${m.sender === "user" ? "bg-blue-600 text-white rounded-tr-sm" : "bg-white text-slate-700 border border-slate-200 rounded-tl-sm shadow-sm"}`}>
+                {renderFormattedText(m.text)}
+              </div>
+              {m.confidence && (
+                <span className="st-mono text-[8px] text-blue-600 mt-1.5 font-bold">
+                  Clinical Confidence: {m.confidence}
+                </span>
+              )}
             </div>
-            {m.confidence && (
-              <span className="st-mono text-[8px] text-blue-600 mt-1.5 font-bold">
-                Clinical Confidence: {m.confidence}
-              </span>
-            )}
-          </div>
-        ))}
+          );
+        })}
         {thinking && (
           <div className="flex items-center gap-1.5 self-start bg-white border border-slate-200 p-3.5 rounded-2xl rounded-tl-sm max-w-[80%] shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: "0ms" }} />
