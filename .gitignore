@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE & System
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Local Tasks
+task.md
+
