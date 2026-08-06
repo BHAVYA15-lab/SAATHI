@@ -46,17 +46,22 @@ const DoctorAuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState("password");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slowRequest, setSlowRequest] = useState(false);
 
   const handleLogin = async () => {
     setError("");
     setLoading(true);
+    setSlowRequest(false);
+    const slowTimer = setTimeout(() => setSlowRequest(true), 5000);
     try {
       await login(email, password);
       onSuccess();
     } catch (err: any) {
       setError(err.message || "Failed to log in as doctor");
     } finally {
+      clearTimeout(slowTimer);
       setLoading(false);
+      setSlowRequest(false);
     }
   };
 
@@ -80,6 +85,12 @@ const DoctorAuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
         <button disabled={loading} onClick={handleLogin} className="st-btn-primary rounded-xl py-3 text-sm font-semibold mt-4 flex justify-center items-center gap-2 cursor-pointer shadow-md">
           {loading ? "Authenticating..." : "Log in"}
         </button>
+        {slowRequest && (
+          <div className="p-3 bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-lg font-medium flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <span>Server is waking up — please keep this page open.</span>
+          </div>
+        )}
         <p className="text-[10px] text-center text-slate-400 mt-2 font-medium">Demo credentials pre-filled. Tap Log in to continue.</p>
       </div>
     </div>

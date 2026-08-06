@@ -95,11 +95,15 @@ const AuthScreen: React.FC<AuthProps> = ({ onSuccess }) => {
   const [pincode, setPincode] = useState("400050");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slowRequest, setSlowRequest] = useState(false);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setSlowRequest(false);
+    // After 5s, show a cold-start warning so mobile users don't navigate away
+    const slowTimer = setTimeout(() => setSlowRequest(true), 5000);
     try {
       if (isLogin) {
         await login(email, password);
@@ -110,7 +114,9 @@ const AuthScreen: React.FC<AuthProps> = ({ onSuccess }) => {
     } catch (err: any) {
       setError(err.message || "Authentication failed. Check your entries.");
     } finally {
+      clearTimeout(slowTimer);
       setLoading(false);
+      setSlowRequest(false);
     }
   };
 
@@ -223,6 +229,12 @@ const AuthScreen: React.FC<AuthProps> = ({ onSuccess }) => {
               <button type="submit" disabled={loading} className="st-btn-primary w-full rounded-xl py-3 text-sm font-bold mt-2 flex items-center justify-center gap-2">
                 {loading ? "Authenticating..." : isLogin ? "Sign In" : "Register Profile"} <ChevronRight size={16} />
               </button>
+              {slowRequest && (
+                <div className="p-3 bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-lg font-medium flex items-center gap-2 mt-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  <span>Server is waking up from sleep — this takes up to 60 seconds on the first request. Please keep this page open.</span>
+                </div>
+              )}
             </form>
 
             <div className="border-t border-slate-200 my-6 pt-4 text-center">

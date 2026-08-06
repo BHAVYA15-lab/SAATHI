@@ -1,6 +1,9 @@
 const RAW_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000/api";
 const API_BASE = RAW_BASE.replace(/\/$/, "");
 
+// Render free tier cold-starts take up to 60s. 90s timeout gives a full cold-start window.
+const FETCH_TIMEOUT_MS = 90_000;
+
 interface RequestOptions extends RequestInit {
   json?: any;
   form?: Record<string, string>;
@@ -29,10 +32,27 @@ export async function request(endpoint: string, options: RequestOptions = {}) {
     options.body = searchParams.toString();
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  // Abort controller for timeout — covers Render free-tier cold-starts on mobile
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err?.name === "AbortError") {
+      throw new Error(
+        "Server is waking up — this can take up to 60 seconds on a cold start. Please wait a moment and try again."
+      );
+    }
+    throw new Error("Network error: unable to reach the server. Check your internet connection and try again.");
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errText = await response.text();
